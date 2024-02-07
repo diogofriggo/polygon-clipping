@@ -1,7 +1,7 @@
 use crate::point::Point;
 
 // remember that the cost of storing a reference and 64 bits is the same
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Bounds {
     pub min_x: f64,
     pub max_x: f64,

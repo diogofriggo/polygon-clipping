@@ -3,7 +3,7 @@ use crate::point::Point;
 use crate::polygon::Polygon;
 use std::cmp::Ordering::*;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Segment {
     pub start: Point,
     pub end: Point,
@@ -28,7 +28,7 @@ impl Segment {
         let (min_y, max_y) = min_max(&y0, &y1);
         let dx = max_x - min_x;
         let dy = max_y - min_y;
-        // TODO: confirm that this makes sense
+        // TODO: confirm that this makes sense (I don't think it does)
         let alpha = dx.atan2(dy);
         let sin_alpha = alpha.sin();
         let cos_alpha = alpha.cos();
@@ -104,8 +104,8 @@ impl Segment {
         let extended_x = (extended_y - self.offset) / self.slope;
         let extended_end = Point::new(extended_x, extended_y);
 
-        let extension_brought_end_to_start = self.start == extended_end;
-        extension_brought_end_to_start
+        // extension_brought_end_to_start
+        self.start == extended_end
     }
 }
 

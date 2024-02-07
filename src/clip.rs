@@ -2,7 +2,7 @@ use crate::{polygon::Polygon, segment::Segment};
 
 // TODO: handle case where polygons do not overlap
 // assumes that they overlap, could be enforced by a enum
-pub fn sum(polygon_a: &Polygon, polygon_b: &Polygon) -> Polygon {
+pub fn sum_pair(polygon_a: &Polygon, polygon_b: &Polygon) -> Polygon {
     let upper_bound = polygon_a.segments.len().max(polygon_b.segments.len());
     // each segment can cross a polygon at most twice and there are 2 polygons
     let mut segments = Vec::with_capacity(2 * 2 * upper_bound);

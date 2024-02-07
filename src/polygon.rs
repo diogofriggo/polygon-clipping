@@ -4,6 +4,7 @@ use crate::segment::Segment;
 use std::collections::HashMap;
 use std::slice::Iter;
 
+#[derive(Debug)]
 pub struct Polygon {
     pub points: Vec<Point>,
     pub segments: Vec<Segment>,
@@ -38,7 +39,8 @@ impl Polygon {
     }
 
     pub fn from_unordered_segments(unordered_segments: Vec<Segment>) -> Polygon {
-        let mut start: DecomposedPoint = unordered_segments[0].end.clone().into();
+        // we mean to panic if unordered_segments is empty
+        let mut start: DecomposedPoint = (&unordered_segments[0].end).into();
 
         let n = unordered_segments.len();
         let mut hashmap: HashMap<DecomposedPoint, _> = HashMap::with_capacity(n);
@@ -47,16 +49,24 @@ impl Polygon {
         }
 
         let mut points = Vec::with_capacity(n);
+        let mut segments = Vec::with_capacity(n);
         // unordered_segments cannot be empty, panic
         while let Some(segment) = hashmap.remove(&start) {
             // TODO: A polygon's points array has ownership of start, how to move it to this new
             // array? Segment would have to take &mut Point and that would complicate things
             // sustantially
             points.push(segment.start.clone());
-            start = segment.end.into();
+            start = (&segment.end).into();
+            segments.push(segment);
         }
 
-        Polygon::from_points(points)
+        let bounds = Bounds::from_points(&points);
+
+        Self {
+            points,
+            segments,
+            bounds,
+        }
     }
 
     pub fn iter_points(&self) -> Iter<'_, Point> {

@@ -1,7 +1,7 @@
 /// it'd probably be more efficient to use to_bits if we can be sure that there won't ever be nans
 use std::mem;
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Debug)]
 pub struct Point {
     pub x: f64,
     pub y: f64,
@@ -19,25 +19,7 @@ pub struct DecomposedPoint {
     pub y: (u64, i16, i8),
 }
 
-// impl From<&Point> for DecomposedPoint {
-//     fn from(point: &Point) -> Self {
-//         Self {
-//             x: integer_decode(point.x),
-//             y: integer_decode(point.y),
-//         }
-//     }
-// }
-
 impl Into<DecomposedPoint> for &Point {
-    fn into(self) -> DecomposedPoint {
-        DecomposedPoint {
-            x: integer_decode(self.x),
-            y: integer_decode(self.y),
-        }
-    }
-}
-
-impl Into<DecomposedPoint> for Point {
     fn into(self) -> DecomposedPoint {
         DecomposedPoint {
             x: integer_decode(self.x),
