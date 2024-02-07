@@ -1,4 +1,4 @@
-use crate::{Polygon, Segment};
+use crate::{polygon::Polygon, segment::Segment};
 
 // assumes that they overlap, could be enforced by a enum
 pub fn sum<'a>(polygon_a: &'a Polygon, polygon_b: &'a Polygon) -> Polygon<'a> {
