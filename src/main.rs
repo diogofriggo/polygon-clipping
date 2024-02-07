@@ -1,6 +1,7 @@
 use point::Point;
 use polygon::Polygon;
 
+mod bounds;
 mod clip;
 mod draw;
 mod point;

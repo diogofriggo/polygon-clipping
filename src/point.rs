@@ -37,6 +37,15 @@ impl Into<DecomposedPoint> for &Point {
     }
 }
 
+impl Into<DecomposedPoint> for Point {
+    fn into(self) -> DecomposedPoint {
+        DecomposedPoint {
+            x: integer_decode(self.x),
+            y: integer_decode(self.y),
+        }
+    }
+}
+
 fn integer_decode(val: f64) -> (u64, i16, i8) {
     let bits: u64 = unsafe { mem::transmute(val) };
     let sign: i8 = if bits >> 63 == 0 { 1 } else { -1 };

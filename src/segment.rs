@@ -1,10 +1,12 @@
+use crate::bounds::Bounds;
 use crate::point::Point;
-use crate::polygon::{Bounds, Polygon};
+use crate::polygon::Polygon;
 use std::cmp::Ordering::*;
 
-pub struct Segment<'a> {
-    pub start: &'a Point,
-    pub end: &'a Point,
+#[derive(Clone)]
+pub struct Segment {
+    pub start: Point,
+    pub end: Point,
     slope: f64,
     offset: f64,
     bounds: Bounds,
@@ -12,8 +14,8 @@ pub struct Segment<'a> {
     cos_alpha: f64,
 }
 
-impl<'a> Segment<'a> {
-    pub fn new(start: &'a Point, end: &'a Point) -> Self {
+impl Segment {
+    pub fn new(start: Point, end: Point) -> Self {
         let x0 = start.x;
         let y0 = start.y;
         let x1 = end.x;
@@ -49,7 +51,7 @@ impl<'a> Segment<'a> {
         }
     }
 
-    pub fn intersection_with(&self, other_segment: &Segment<'_>) -> Option<Point> {
+    pub fn intersection_with(&self, other_segment: &Segment) -> Option<Point> {
         let segments_are_parallel = self.slope.partial_cmp(&other_segment.slope) == Some(Equal);
 
         if segments_are_parallel {
@@ -90,6 +92,7 @@ impl<'a> Segment<'a> {
         Point::new(xprime, yprime)
     }
 
+    // TODO: this implementation is incorrect
     pub fn points_outwards_of(&self, polygon: &Polygon) -> bool {
         let y_is_increasing = self.end.y > self.start.y;
         let extended_y = if y_is_increasing {
@@ -101,7 +104,7 @@ impl<'a> Segment<'a> {
         let extended_x = (extended_y - self.offset) / self.slope;
         let extended_end = Point::new(extended_x, extended_y);
 
-        let extension_brought_end_to_start = self.start == &extended_end;
+        let extension_brought_end_to_start = self.start == extended_end;
         extension_brought_end_to_start
     }
 }
