@@ -1,5 +1,6 @@
 /// it'd probably be more efficient to use to_bits if we can be sure that there won't ever be nans
 use std::{
+    fmt::Display,
     mem,
     ops::{Add, Div},
 };
@@ -94,4 +95,10 @@ fn integer_decode(val: f64) -> (u64, i16, i8) {
 
     exponent -= 1023 + 52;
     (mantissa, exponent, sign)
+}
+
+impl Display for Point2d {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
+    }
 }

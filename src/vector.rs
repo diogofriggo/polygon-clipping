@@ -1,3 +1,5 @@
+use std::ops::Sub;
+
 use crate::point::Point2d;
 
 pub struct Vector2d {
@@ -6,9 +8,9 @@ pub struct Vector2d {
 }
 
 impl Vector2d {
-    // pub fn from_coordinates(x: f64, y: f64) -> Self {
-    //     Self { x, y }
-    // }
+    pub fn from_coordinates(x: f64, y: f64) -> Self {
+        Self { x, y }
+    }
 
     pub fn from_points(start: &Point2d, end: &Point2d) -> Self {
         Self {
@@ -17,13 +19,23 @@ impl Vector2d {
         }
     }
 
-    // pub fn dot(&self, vector: &Vector2d) -> f64 {
-    //     self.x * vector.x + self.y * vector.y
-    // }
-    //
-    // pub fn norm(&self) -> f64 {
-    //     self.dot(self).sqrt()
-    // }
+    pub fn dot(&self, vector: &Vector2d) -> f64 {
+        self.x * vector.x + self.y * vector.y
+    }
+
+    pub fn norm(&self) -> f64 {
+        self.dot(self).sqrt()
+    }
+}
+
+impl Sub for Vector2d {
+    type Output = Vector2d;
+
+    fn sub(self, other: Self) -> Self::Output {
+        let x = self.x - other.x;
+        let y = self.y - other.y;
+        Vector2d::from_coordinates(x, y)
+    }
 }
 
 pub struct Vector3d {

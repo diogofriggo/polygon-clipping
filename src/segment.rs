@@ -2,6 +2,7 @@ use crate::bounds::Bounds;
 use crate::point::Point2d;
 use crate::vector::{Vector2d, Vector3d};
 use std::cmp::Ordering::*;
+use std::fmt::Display;
 
 #[derive(Clone, Debug)]
 pub struct Segment {
@@ -23,19 +24,18 @@ impl Segment {
 
         let slope = (ye - ys) / (xe - xs);
         let offset = ys - slope * xs;
-        println!(
-            "{} {} {} {} slope: {} offset: {}",
-            xs, ys, xe, ye, slope, offset
-        );
+
+        let y_end = Point2d::new(start.x, end.y);
+        let y = Vector2d::from_points(&start, &y_end);
+        let w = Vector2d::from_points(&start, &end);
+        let y_side = y.norm();
+        let w_side = w.norm();
+        let x_side = (w - y).norm();
+        let sin_alpha = x_side / w_side;
+        let cos_alpha = y_side / w_side;
 
         let (min_x, max_x) = min_max(&xs, &xe);
         let (min_y, max_y) = min_max(&ys, &ye);
-        let dx = max_x - min_x;
-        let dy = max_y - min_y;
-        // TODO: confirm that this makes sense (I don't think it does)
-        let alpha = dx.atan2(dy);
-        let sin_alpha = alpha.sin();
-        let cos_alpha = alpha.cos();
 
         let bounds = Bounds {
             min_x: *min_x,
@@ -43,6 +43,11 @@ impl Segment {
             min_y: *min_y,
             max_y: *max_y,
         };
+
+        // println!(
+        //     "{} {} {} {} slope: {} offset: {} sin_alpha: {} cos_alpha: {}",
+        //     xs, ys, xe, ye, slope, offset, sin_alpha, cos_alpha
+        // );
 
         Self {
             start,
@@ -60,9 +65,11 @@ impl Segment {
         let mut intersections = Vec::with_capacity(2);
 
         // prime values are used to ease reasoning, only unprimed ones are returned
+        // one needs to be careful not to compare prime with unprime
         let start_prime = self.change_to_self_basis(&other_segment.start);
         let end_prime = self.change_to_self_basis(&other_segment.end);
         let other_segment_prime = Segment::new(start_prime, end_prime);
+
         let Segment {
             slope: slope_prime,
             start: start_prime,
@@ -85,6 +92,7 @@ impl Segment {
                 intersections.push(other_segment.end.clone());
             }
         } else if segments_are_perpendicular {
+            println!("prime: {start_prime}-->{end_prime} ... intersections_with(&{self}, {other_segment}: &Segment)");
             let is_in_self = start_prime.x >= 0.0 && start_prime.x <= self_length;
             if is_in_self {
                 let intersection = Point2d::new(self.start.x, other_segment.start.y);
@@ -132,21 +140,20 @@ impl Segment {
     }
 
     fn change_to_self_basis(&self, point: &Point2d) -> Point2d {
+        let x0 = self.start.x;
+        let y0 = self.start.y;
         let Point2d { x, y } = point;
 
         let Self {
-            bounds,
             sin_alpha,
             cos_alpha,
             ..
         } = self;
 
-        let Bounds { min_x, min_y, .. } = bounds;
-
-        let xprime = (x - min_x) * sin_alpha + (y - min_y) * cos_alpha;
-        let yprime = (x - min_x) * cos_alpha - (y - min_y) * sin_alpha;
-
-        Point2d::new(xprime, yprime)
+        let x_prime = (x - x0) * sin_alpha + (y - y0) * cos_alpha;
+        let y_prime = (x - x0) * cos_alpha - (y - y0) * sin_alpha;
+        //println!("change of basis... self: {self} point: {point} prime ({x_prime}, {y_prime})");
+        Point2d::new(x_prime, y_prime)
     }
 
     pub fn points_inwards(&self, segment: &Segment) -> bool {
@@ -165,5 +172,11 @@ fn min_max<'a>(a: &'a f64, b: &'a f64) -> (&'a f64, &'a f64) {
         (a, b)
     } else {
         (b, a)
+    }
+}
+
+impl Display for Segment {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}-->{}", self.start, self.end)
     }
 }
