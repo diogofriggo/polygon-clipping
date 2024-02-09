@@ -1,4 +1,4 @@
-use crate::point::Point;
+use crate::point::Point2d;
 
 // remember that the cost of storing a reference and 64 bits is the same
 #[derive(Clone, Debug)]
@@ -10,7 +10,7 @@ pub struct Bounds {
 }
 
 impl Bounds {
-    pub fn from_points(points: &[Point]) -> Bounds {
+    pub fn from_points(points: &[Point2d]) -> Bounds {
         let xs: Vec<_> = points.iter().map(|point| point.x).collect();
         let ys: Vec<_> = points.iter().map(|point| point.y).collect();
         Bounds {
