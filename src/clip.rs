@@ -9,7 +9,6 @@ pub fn sum_pair(polygon_a: &Polygon, polygon_b: &Polygon) -> Polygon {
 
     clip(polygon_a, polygon_b, &mut clipped_segments);
     clip(polygon_b, polygon_a, &mut clipped_segments);
-
     Polygon::from_unordered_segments(clipped_segments)
 }
 
@@ -27,10 +26,6 @@ fn clip_segment(mould: &Polygon, segment: &Segment, clipped_segments: &mut Vec<S
         let intersections = mould_segment.intersections_with(segment);
 
         for intersection in intersections {
-            println!(
-                "clipping {} with {} at {}",
-                segment, mould_segment, intersection
-            );
             let sub_segment_a = Segment::new(segment.start.clone(), intersection.clone());
             let sub_segment_b = Segment::new(intersection.clone(), segment.end.clone());
 
@@ -40,6 +35,7 @@ fn clip_segment(mould: &Polygon, segment: &Segment, clipped_segments: &mut Vec<S
                 sub_segment_b
             };
 
+            println!("pushing segment {}", kept_sub_segment);
             clipped_segments.push(kept_sub_segment);
         }
     }

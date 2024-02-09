@@ -1,6 +1,6 @@
 use std::ops::Sub;
 
-use crate::point::Point2d;
+use crate::{point::Point2d, segment::Segment};
 
 pub struct Vector2d {
     pub x: f64,
@@ -93,5 +93,13 @@ impl From<Vector2d> for Vector3d {
             y: vector.y,
             z: f64::default(),
         }
+    }
+}
+
+impl From<&Segment> for Vector2d {
+    fn from(segment: &Segment) -> Self {
+        let Segment { start, end, .. } = segment;
+        let point = end - start;
+        Self::from_coordinates(point.x, point.y)
     }
 }

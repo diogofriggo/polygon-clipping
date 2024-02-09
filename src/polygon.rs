@@ -2,6 +2,7 @@ use crate::bounds::Bounds;
 use crate::point::{DecomposedPoint, Point2d};
 use crate::segment::Segment;
 use std::collections::HashMap;
+use std::fmt::Display;
 use std::slice::Iter;
 
 #[derive(Debug)]
@@ -41,13 +42,14 @@ impl Polygon {
     }
 
     pub fn from_unordered_segments(unordered_segments: Vec<Segment>) -> Polygon {
+        println!("{}", &unordered_segments[0]);
         // we mean to panic if unordered_segments is empty
         let mut start: DecomposedPoint = (&unordered_segments[0].end).into();
 
         let n = unordered_segments.len();
         let mut hashmap: HashMap<DecomposedPoint, _> = HashMap::with_capacity(n);
         for segment in unordered_segments {
-            hashmap.insert((&segment.end).into(), segment);
+            hashmap.insert((&segment.start).into(), segment);
         }
 
         let mut points = Vec::with_capacity(n);
@@ -73,5 +75,14 @@ impl Polygon {
 
     pub fn iter_points(&self) -> Iter<'_, Point2d> {
         self.points.iter()
+    }
+}
+
+impl Display for Polygon {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for segment in &self.segments {
+            write!(f, "{}", segment)?
+        }
+        Ok(())
     }
 }

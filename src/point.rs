@@ -2,7 +2,7 @@
 use std::{
     fmt::Display,
     mem,
-    ops::{Add, Div},
+    ops::{Add, Div, Sub},
 };
 
 #[derive(PartialEq, Clone, Debug)]
@@ -24,6 +24,28 @@ impl Add for &Point2d {
         Point2d {
             x: self.x + other.x,
             y: self.y + other.y,
+        }
+    }
+}
+
+impl Sub for &Point2d {
+    type Output = Point2d;
+
+    fn sub(self, other: &Point2d) -> Self::Output {
+        Point2d {
+            x: self.x - other.x,
+            y: self.y - other.y,
+        }
+    }
+}
+
+impl Sub for Point2d {
+    type Output = Point2d;
+
+    fn sub(self, other: Point2d) -> Self::Output {
+        Point2d {
+            x: self.x - other.x,
+            y: self.y - other.y,
         }
     }
 }
