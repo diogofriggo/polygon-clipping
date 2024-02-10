@@ -6,4 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+num_cpus = "1.16.0"
 rustvision = "0.1.1"
+thread-pool = "0.1.1"

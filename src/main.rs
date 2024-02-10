@@ -24,9 +24,8 @@ fn main() {
     let points_b = vec![b0, b1, b2, b3];
     let polygon_b = Polygon::from_points(points_b);
 
-    let sum_polygon = clip::sum_pair(&polygon_a, &polygon_b);
-    println!("sum_polygon: {sum_polygon}");
+    let polygons = vec![polygon_a, polygon_b];
 
-    let polygons = vec![sum_polygon];
+    let polygons = clip::sum(polygons);
     draw::draw(&polygons);
 }

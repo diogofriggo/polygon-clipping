@@ -1,7 +1,7 @@
 use crate::bounds::Bounds;
-use crate::point::{DecomposedPoint, Point2d};
+use crate::point::Point2d;
 use crate::segment::Segment;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt::Display;
 use std::slice::Iter;
 
@@ -41,48 +41,85 @@ impl Polygon {
         }
     }
 
-    pub fn from_unordered_segments(unordered_segments: Vec<Segment>) -> Polygon {
-        println!("{}", &unordered_segments[0]);
-        // we mean to panic if unordered_segments is empty
-        let mut start: DecomposedPoint = (&unordered_segments[0].end).into();
-
-        let n = unordered_segments.len();
-        let mut hashmap: HashMap<DecomposedPoint, _> = HashMap::with_capacity(n);
-        for segment in unordered_segments {
-            hashmap.insert((&segment.start).into(), segment);
-        }
-
-        let mut points = Vec::with_capacity(n);
-        let mut segments = Vec::with_capacity(n);
-        // unordered_segments cannot be empty, panic
-        while let Some(segment) = hashmap.remove(&start) {
-            // TODO: A polygon's points array has ownership of start, how to move it to this new
-            // array? Segment would have to take &mut Point and that would complicate things
-            // sustantially
-            points.push(segment.start.clone());
-            start = (&segment.end).into();
-            segments.push(segment);
-        }
-
-        let bounds = Bounds::from_points(&points);
-
-        Self {
-            points,
-            segments,
-            bounds,
-        }
-    }
-
     pub fn iter_points(&self) -> Iter<'_, Point2d> {
         self.points.iter()
     }
 }
 
+pub fn polygons_from_unordered_segments(unordered_segments: Vec<Segment>) -> Vec<Polygon> {
+    // TODO: HashableSegment, From<HashableSegment> for Segment
+    let mut roadmap: HashMap<&(u64, u64), Vec<&Segment>> = HashMap::new();
+    for segment in &unordered_segments {
+        roadmap.entry(&segment.start.key).or_default().push(segment);
+    }
+
+    let mut vertex = &unordered_segments[0].start.key;
+    let mut polygons = vec![];
+
+    // hashmap.values() being a vec and the outer loop are necessary because many polygons may
+    // share a vertex in a way that it is ambiguous which path to follow, thus we follow all of
+    // them, one at a time
+    'outer: loop {
+        let mut points = vec![];
+        let mut segments = vec![];
+        let mut visited_vertices = HashSet::new();
+
+        loop {
+            // vec of possible paths
+            let paths = match roadmap.get_mut(vertex) {
+                // if there are no more paths we are done
+                None => break 'outer,
+                Some(paths) => paths,
+            };
+            visited_vertices.insert(vertex);
+
+            // take any path, order is not relevant
+            let path = match paths.pop() {
+                None => {
+                    // this branch means we have exausted all paths of a polygon
+                    // but there may be other polygons that are disjoint with the
+                    // one just built so we push these segments as a fully formed
+                    // polygon and break to check for more polygons
+                    let bounds = Bounds::from_points(&points);
+                    let polygon = Polygon {
+                        points,
+                        segments,
+                        bounds,
+                    };
+                    polygons.push(polygon);
+
+                    // remove the visited vertices so that if there are no more vertices
+                    // (i.e. from unvisited disjoint polygons) we can break out of 'outer
+                    // and return from the function
+                    for vertex in visited_vertices {
+                        roadmap.remove(vertex);
+                    }
+
+                    break;
+                }
+                Some(path) => path,
+            };
+
+            points.push(path.start.clone());
+            // we update the vertex pointer to now point to
+            // the path whose start is this path's end
+            vertex = &path.end.key;
+            segments.push(path.clone());
+        }
+    }
+
+    polygons
+}
+
 impl Display for Polygon {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for segment in &self.segments {
-            write!(f, "{}", segment)?
-        }
-        Ok(())
+        let segments = self
+            .segments
+            .iter()
+            .map(|segment| format!("{segment}"))
+            .collect::<Vec<_>>()
+            .join("; ");
+
+        write!(f, "{}", segments)
     }
 }

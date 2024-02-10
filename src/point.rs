@@ -1,7 +1,6 @@
 /// it'd probably be more efficient to use to_bits if we can be sure that there won't ever be nans
 use std::{
     fmt::Display,
-    mem,
     ops::{Add, Div, Sub},
 };
 
@@ -9,11 +8,13 @@ use std::{
 pub struct Point2d {
     pub x: f64,
     pub y: f64,
+    pub key: (u64, u64),
 }
 
 impl Point2d {
     pub fn new(x: f64, y: f64) -> Self {
-        Self { x, y }
+        let key = (x.to_bits(), y.to_bits());
+        Self { x, y, key }
     }
 }
 
@@ -21,10 +22,10 @@ impl Add for &Point2d {
     type Output = Point2d;
 
     fn add(self, other: &Point2d) -> Self::Output {
-        Point2d {
-            x: self.x + other.x,
-            y: self.y + other.y,
-        }
+        let x = self.x + other.x;
+        let y = self.y + other.y;
+        let key = (x.to_bits(), y.to_bits());
+        Point2d { x, y, key }
     }
 }
 
@@ -32,10 +33,10 @@ impl Sub for &Point2d {
     type Output = Point2d;
 
     fn sub(self, other: &Point2d) -> Self::Output {
-        Point2d {
-            x: self.x - other.x,
-            y: self.y - other.y,
-        }
+        let x = self.x - other.x;
+        let y = self.y - other.y;
+        let key = (x.to_bits(), y.to_bits());
+        Point2d { x, y, key }
     }
 }
 
@@ -43,10 +44,10 @@ impl Sub for Point2d {
     type Output = Point2d;
 
     fn sub(self, other: Point2d) -> Self::Output {
-        Point2d {
-            x: self.x - other.x,
-            y: self.y - other.y,
-        }
+        let x = self.x - other.x;
+        let y = self.y - other.y;
+        let key = (x.to_bits(), y.to_bits());
+        Point2d { x, y, key }
     }
 }
 
@@ -83,10 +84,10 @@ impl Point3d {
 
 impl From<Point3d> for Point2d {
     fn from(point: Point3d) -> Self {
-        Self {
-            x: point.x,
-            y: point.y,
-        }
+        let x = point.x;
+        let y = point.y;
+        let key = (x.to_bits(), y.to_bits());
+        Self { x, y, key }
     }
 }
 
@@ -96,17 +97,17 @@ pub struct DecomposedPoint {
     pub y: (u64, i16, i8),
 }
 
-impl Into<DecomposedPoint> for &Point2d {
-    fn into(self) -> DecomposedPoint {
+impl From<&Point2d> for DecomposedPoint {
+    fn from(val: &Point2d) -> Self {
         DecomposedPoint {
-            x: integer_decode(self.x),
-            y: integer_decode(self.y),
+            x: integer_decode(val.x),
+            y: integer_decode(val.y),
         }
     }
 }
 
 fn integer_decode(val: f64) -> (u64, i16, i8) {
-    let bits: u64 = unsafe { mem::transmute(val) };
+    let bits: u64 = val.to_bits();
     let sign: i8 = if bits >> 63 == 0 { 1 } else { -1 };
     let mut exponent: i16 = ((bits >> 52) & 0x7ff) as i16;
     let mantissa = if exponent == 0 {
