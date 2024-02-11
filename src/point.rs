@@ -4,6 +4,8 @@ use std::{
     ops::{Add, Div, Sub},
 };
 
+use crate::segment::Segment;
+
 #[derive(PartialEq, Clone, Debug)]
 pub struct Point2d {
     pub x: f64,
@@ -15,6 +17,19 @@ impl Point2d {
     pub fn new(x: f64, y: f64) -> Self {
         let key = (x.to_bits(), y.to_bits());
         Self { x, y, key }
+    }
+
+    pub fn is_inside_of(&self, mould_segments: &[Segment]) -> bool {
+        // if all vectors from segment[i].start to self are pointing inward
+        for mould_segment in mould_segments {
+            let other = Segment::new(mould_segment.start.clone(), self.clone());
+            let points_outwards = !other.points_inwards_of(mould_segment);
+            if points_outwards {
+                return false;
+            }
+        }
+
+        true
     }
 }
 

@@ -22,9 +22,9 @@ impl Vector2d {
         }
     }
 
-    // pub fn dot(&self, vector: &Vector2d) -> f64 {
-    //     self.x * vector.x + self.y * vector.y
-    // }
+    pub fn dot(&self, vector: &Vector2d) -> f64 {
+        self.x * vector.x + self.y * vector.y
+    }
     //
     // pub fn norm(&self) -> f64 {
     //     self.dot(self).sqrt()

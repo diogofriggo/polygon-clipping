@@ -96,7 +96,7 @@ impl Segment {
     ) -> Option<Point2d> {
         let y = finite_segment.slope * infinite_segment.start.x + finite_segment.offset;
         let intersection = Point2d::new(infinite_segment.start.x, y);
-        if finite_segment.boxes(&intersection) {
+        if infinite_segment.boxes(&intersection) && finite_segment.boxes(&intersection) {
             Some(intersection)
         } else {
             None
@@ -158,6 +158,15 @@ impl Segment {
 
     pub fn is_point(&self) -> bool {
         self.start == self.end
+    }
+
+    pub fn is_inside_of(&self, mould_segments: &[Segment]) -> bool {
+        self.start.is_inside_of(mould_segments) && self.end.is_inside_of(mould_segments)
+    }
+
+    pub fn is_collinear_with(&self, mould_segment: &Segment) -> bool {
+        self.slope == mould_segment.slope
+            || (self.slope.is_infinite() && mould_segment.slope.is_infinite())
     }
 }
 

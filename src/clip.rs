@@ -4,6 +4,7 @@ use thread_pool::ThreadPool;
 use crate::{
     polygon::{polygons_from_unordered_segments, Polygon},
     segment::Segment,
+    vector::Vector2d,
 };
 
 // // TODO: many polygons
@@ -81,14 +82,24 @@ pub fn clip_one_another(segments_a: &[Segment], segments_b: &[Segment]) -> Vec<S
     clipped_segments
 }
 
+// fn is_inside_of(larger_segments: &[Segment], smaller_segments: &[Segment]) -> bool {
+//     for smaller_segment in smaller_segments {
+//         let is_outside = !smaller_segment.is_inside_of(larger_segments);
+//         if is_outside {
+//             return false;
+//         }
+//     }
+//     true
+// }
+
 fn clip(
     mould_segments: &[Segment],
     polygon_segments: &[Segment],
     clipped_segments: &mut Vec<Segment>,
 ) {
+    println!("=== MOULD ===");
     for segment in polygon_segments {
-        // only clip if segment is not contained inside polygon
-        clip_segment(mould_segments, segment, clipped_segments);
+        clip_segment(mould_segments, segment, polygon_segments, clipped_segments);
     }
 }
 
@@ -96,31 +107,38 @@ fn clip(
 fn clip_segment(
     mould_segments: &[Segment],
     segment: &Segment,
+    polygon_segments: &[Segment],
     clipped_segments: &mut Vec<Segment>,
 ) {
+    if segment.is_inside_of(mould_segments) {
+        return;
+    }
+
     let clipped_segments_before = clipped_segments.len();
-    // println!(
-    //     "{} is this segment a point? {}",
-    //     segment.start == segment.end,
-    //     segment
-    // );
-    // if segment.start == segment.end {
-    //     panic!("stentae");
-    // }
 
     for mould_segment in mould_segments {
+        if mould_segment.is_inside_of(polygon_segments) {
+            let vector: Vector2d = segment.into();
+            let mould_vector: Vector2d = mould_segment.into();
+            let is_outside = mould_vector.dot(&vector) == -1.0;
+            let process = mould_segment.is_collinear_with(segment) && is_outside;
+            if !process {
+                continue;
+            }
+        }
+
         let intersections = mould_segment.intersections_with(segment);
         for intersection in intersections {
             let sub_segment_a = Segment::new(intersection.clone(), segment.start.clone());
             let sub_segment_b = Segment::new(intersection.clone(), segment.end.clone());
 
             if sub_segment_a.is_point() {
-                println!("a is a point so don't push anything (it's going to get pushed at loop end): {}", sub_segment_a);
+                println!("a is a point so don't push anything (the undivided segment will be pushed at loop end): {}", sub_segment_a);
                 continue;
             }
 
             if sub_segment_b.is_point() {
-                println!("b is a point so don't push anything (it's going to get pushed at loop end): {}", sub_segment_b);
+                println!("b is a point so don't push anything (the undivided segment will be pushed at loop end): {}", sub_segment_b);
                 continue;
             }
 
