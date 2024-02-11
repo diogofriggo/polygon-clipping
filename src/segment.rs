@@ -138,7 +138,7 @@ impl Segment {
         // in a dextrogirous system if y goes down z goes into
         let up = -Vector3d::z(); // if polygons were to be defined clockwise
                                  // let down = -Vector3d::z(); // if polygons were to be defined clockwise
-        let ortho = up.curl(along);
+        let ortho = up.curl(&along);
 
         let vector: Vector3d = Vector2d::from_points(&self.start, &self.end).into();
         vector.dot(&ortho) >= 0.0
@@ -160,13 +160,28 @@ impl Segment {
         self.start == self.end
     }
 
-    pub fn is_inside_of(&self, mould_segments: &[Segment]) -> bool {
-        self.start.is_inside_of(mould_segments) && self.end.is_inside_of(mould_segments)
+    pub fn is_inside_of_or_touches(&self, mould_segments: &[Segment]) -> bool {
+        // let start = self.start.is_inside_of(mould_segments);
+        // let end = self.end.is_inside_of(mould_segments);
+        // println!(
+        //     "is {self} inside of {} ??? : {start} {end}",
+        //     mould_segments[0]
+        // );
+        self.start.is_inside_of_or_touches(mould_segments)
+            && self.end.is_inside_of_or_touches(mould_segments)
     }
 
     pub fn is_collinear_with(&self, mould_segment: &Segment) -> bool {
         self.slope == mould_segment.slope
             || (self.slope.is_infinite() && mould_segment.slope.is_infinite())
+    }
+
+    // I could project the point in self's basis but I went down that road before
+    pub fn contains(&self, point: &Point2d) -> bool {
+        // let y = self.slope * point.x + self.offset;
+        let slope = (point.y - self.start.y) / (point.x - self.start.x);
+        // TODO: f64 comparisons behind the scenes!!!
+        self.boxes(point) && (point == &self.start || slope == self.slope)
     }
 }
 

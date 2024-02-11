@@ -49,7 +49,7 @@ pub fn sum(mut polygons: Vec<Polygon>) -> Vec<Polygon> {
     let last_task = n - 1;
     let mut task = 0;
     let core_count = num_cpus::get();
-    let (sender, _pool) = ThreadPool::fixed_size(core_count);
+    let (sender, _pool) = ThreadPool::fixed_size(1);
     loop {
         match (rx.recv(), rx.recv()) {
             (Ok(segments_a), Ok(segments_b)) => {
@@ -97,7 +97,10 @@ fn clip(
     polygon_segments: &[Segment],
     clipped_segments: &mut Vec<Segment>,
 ) {
-    println!("=== MOULD ===");
+    println!(
+        "=== MOULD === {} POLYGON {}",
+        mould_segments[0], polygon_segments[0]
+    );
     for segment in polygon_segments {
         clip_segment(mould_segments, segment, polygon_segments, clipped_segments);
     }
@@ -110,19 +113,24 @@ fn clip_segment(
     polygon_segments: &[Segment],
     clipped_segments: &mut Vec<Segment>,
 ) {
-    if segment.is_inside_of(mould_segments) {
+    // println!("EVALUATING segment {segment}");
+    // println!("IS_SEGMENT_INSIDE_OF_MOULD");
+    if segment.is_inside_of_or_touches(mould_segments) {
+        println!("segment {segment} is inside of or touches mould, skipping it");
         return;
     }
 
     let clipped_segments_before = clipped_segments.len();
 
     for mould_segment in mould_segments {
-        if mould_segment.is_inside_of(polygon_segments) {
+        // println!("IS_MOULD_SEGMENT_INSIDE_OF_POLYGON");
+        if mould_segment.is_inside_of_or_touches(polygon_segments) {
             let vector: Vector2d = segment.into();
             let mould_vector: Vector2d = mould_segment.into();
             let is_outside = mould_vector.dot(&vector) == -1.0;
             let process = mould_segment.is_collinear_with(segment) && is_outside;
             if !process {
+                // println!("mould_segment {mould_segment} is inside of polygon but it is NOT collinear with {segment}, next mould_segment");
                 continue;
             }
         }
@@ -185,4 +193,20 @@ fn clip_segment(
 //
 //     vec![]
 // }
-//
+
+#[cfg(test)]
+mod tests {
+    use crate::{point::Point2d, vector::Vector2d};
+
+    #[test]
+    fn test() {
+        let start_a = Point2d::new(0.0, 0.0);
+        let end_a = Point2d::new(2.0, 1.0);
+        let a = Vector2d::from_points(&start_a, &end_a);
+
+        let start_b = Point2d::new(2.0, 1.0);
+        let end_b = Point2d::new(1.0, 1.0);
+        let b = Vector2d::from_points(&start_b, &end_b);
+        assert!(a.dot(&b) < 0.0);
+    }
+}
