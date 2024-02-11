@@ -64,6 +64,7 @@ pub fn sum(mut polygons: Vec<Polygon>) -> Vec<Polygon> {
 
         if task == last_task {
             let unordered_segments = rx.recv().unwrap();
+
             return polygons_from_unordered_segments(unordered_segments);
         }
     }
@@ -97,13 +98,30 @@ fn clip_segment(
     clipped_segments: &mut Vec<Segment>,
 ) {
     let clipped_segments_before = clipped_segments.len();
+    // println!(
+    //     "{} is this segment a point? {}",
+    //     segment.start == segment.end,
+    //     segment
+    // );
+    // if segment.start == segment.end {
+    //     panic!("stentae");
+    // }
 
     for mould_segment in mould_segments {
         let intersections = mould_segment.intersections_with(segment);
-
         for intersection in intersections {
             let sub_segment_a = Segment::new(segment.start.clone(), intersection.clone());
             let sub_segment_b = Segment::new(intersection.clone(), segment.end.clone());
+
+            if sub_segment_a.is_point() {
+                println!("a is a point so don't push anything (it's going to get pushed at loop end): {}", sub_segment_a);
+                continue;
+            }
+
+            if sub_segment_b.is_point() {
+                println!("b is a point so don't push anything (it's going to get pushed at loop end): {}", sub_segment_b);
+                continue;
+            }
 
             let kept_sub_segment = if sub_segment_a.points_inwards(mould_segment) {
                 sub_segment_a
@@ -111,7 +129,7 @@ fn clip_segment(
                 sub_segment_b
             };
 
-            println!("pushing segment {}", kept_sub_segment);
+            println!("intersection, pushing segment {}", kept_sub_segment);
             clipped_segments.push(kept_sub_segment);
         }
     }

@@ -137,6 +137,10 @@ impl Segment {
     pub fn contains_point_within_y(&self, point: &Point2d) -> bool {
         point.y >= self.bounds.min_y && point.y <= self.bounds.max_y
     }
+
+    pub fn is_point(&self) -> bool {
+        self.start == self.end
+    }
 }
 
 impl Display for Segment {
