@@ -1,4 +1,7 @@
-use std::ops::Sub;
+use std::{
+    fmt::Display,
+    ops::{Neg, Sub},
+};
 
 use crate::{point::Point2d, segment::Segment};
 
@@ -86,6 +89,17 @@ impl Vector3d {
     }
 }
 
+impl Neg for Vector3d {
+    type Output = Vector3d;
+
+    fn neg(self) -> Self::Output {
+        let x = -self.x;
+        let y = -self.y;
+        let z = -self.z;
+        Vector3d::from_coordinates(x, y, z)
+    }
+}
+
 impl From<Vector2d> for Vector3d {
     fn from(vector: Vector2d) -> Self {
         Self {
@@ -101,5 +115,11 @@ impl From<&Segment> for Vector2d {
         let Segment { start, end, .. } = segment;
         let point = end - start;
         Self::from_coordinates(point.x, point.y)
+    }
+}
+
+impl Display for Vector3d {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {}, {})", self.x, self.y, self.z)
     }
 }

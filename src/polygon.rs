@@ -1,9 +1,8 @@
 use crate::bounds::Bounds;
 use crate::point::Point2d;
 use crate::segment::Segment;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::fmt::Display;
-use std::ops::Mul;
 use std::slice::Iter;
 
 #[derive(Debug)]
@@ -138,11 +137,11 @@ pub fn polygons_from_unordered_segments(unordered_segments: Vec<Segment>) -> Vec
     }
 }
 
-fn to_point(vertex: &(u64, u64)) -> Point2d {
-    let x = f64::from_bits(vertex.0);
-    let y = f64::from_bits(vertex.1);
-    Point2d::new(x, y)
-}
+// fn to_point(vertex: &(u64, u64)) -> Point2d {
+//     let x = f64::from_bits(vertex.0);
+//     let y = f64::from_bits(vertex.1);
+//     Point2d::new(x, y)
+// }
 
 impl Display for Polygon {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

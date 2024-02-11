@@ -10,10 +10,12 @@ mod segment;
 mod vector;
 
 fn main() {
-    case2()
+    _case1();
+    // _case2();
+    // _case3();
 }
 
-fn case1() {
+fn _case1() {
     let a0 = Point2d::new(1.0, 1.0);
     let a1 = Point2d::new(1.0, 3.0);
     let a2 = Point2d::new(3.0, 3.0);
@@ -41,13 +43,14 @@ fn case1() {
     let points_d = vec![d0, d1, d2];
     let polygon_d = Polygon::from_points(points_d);
 
-    let polygons = vec![polygon_a, polygon_b, polygon_c, polygon_d];
+    // let polygons = vec![polygon_a, polygon_b, polygon_c, polygon_d];
+    let polygons = vec![polygon_a, polygon_d];
 
     let polygons = clip::sum(polygons);
     draw::draw(&polygons);
 }
 
-fn case2() {
+fn _case2() {
     let a0 = Point2d::new(1.0, 1.0);
     let a1 = Point2d::new(3.0, 1.0);
     let a2 = Point2d::new(2.0, 3.0);

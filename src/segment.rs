@@ -42,13 +42,23 @@ impl Segment {
         }
     }
 
+    // TODO: stop computing intersections twice (a,b then b,a)
     pub fn intersections_with(&self, other: &Segment) -> Vec<Point2d> {
         // there can be at most two points of intersection (segment start and segment end)
         let mut intersections = Vec::with_capacity(2);
 
-        let segments_are_parallel = self.slope == other.slope;
+        if self.slope.is_infinite() && other.slope.is_infinite() {
+            let segments_are_colinear = self.start.x == other.start.x;
+            if segments_are_colinear {
+                if self.contains_point_within_y(&other.start) {
+                    intersections.push(other.start.clone());
+                }
 
-        if segments_are_parallel {
+                if self.contains_point_within_y(&other.end) {
+                    intersections.push(other.end.clone());
+                }
+            }
+        } else if self.slope == 0.0 && other.slope == 0.0 {
             let segments_are_colinear = self.start.y == other.start.y;
             if segments_are_colinear {
                 if self.contains_point_within_x(&other.start) {
@@ -59,22 +69,20 @@ impl Segment {
                     intersections.push(other.end.clone());
                 }
             }
-        // perpendicular
-        } else if self.slope == 0.0 && other.slope.is_infinite() {
-            if let Some(intersection) = Self::perpendicular_intersection(self, other) {
+        } else if self.slope.is_infinite() {
+            if let Some(intersection) = Self::infinite_intersection(self, other) {
                 intersections.push(intersection);
             }
-        // perpendicular
-        } else if self.slope.is_infinite() && other.slope == 0.0 {
-            if let Some(intersection) = Self::perpendicular_intersection(other, self) {
+        } else if other.slope.is_infinite() {
+            if let Some(intersection) = Self::infinite_intersection(other, self) {
                 intersections.push(intersection);
             }
         } else {
-            let intersection = Self::intersection(self, other);
-            if self.contains_point_within_x(&intersection)
-                && self.contains_point_within_y(&intersection)
-            {
-                intersections.push(intersection);
+            // there's no intersection iff the two segments are parallel
+            if let Some(intersection) = Self::intersection(self, other) {
+                if self.boxes(&intersection) && other.boxes(&intersection) {
+                    intersections.push(intersection);
+                }
             }
         }
 
@@ -82,23 +90,21 @@ impl Segment {
         intersections
     }
 
-    fn perpendicular_intersection(
-        horizontal_segment: &Segment,
-        vertical_segment: &Segment,
+    fn infinite_intersection(
+        infinite_segment: &Segment,
+        finite_segment: &Segment,
     ) -> Option<Point2d> {
-        if horizontal_segment.contains_point_within_x(&vertical_segment.start)
-            && vertical_segment.contains_point_within_y(&horizontal_segment.start)
-        {
-            return Some(Point2d::new(
-                vertical_segment.start.x,
-                horizontal_segment.start.y,
-            ));
+        let y = finite_segment.slope * infinite_segment.start.x + finite_segment.offset;
+        let intersection = Point2d::new(infinite_segment.start.x, y);
+        if finite_segment.boxes(&intersection) {
+            Some(intersection)
+        } else {
+            None
         }
-        None
     }
 
     // assumes that intersection exists
-    fn intersection(segment: &Segment, other_segment: &Segment) -> Point2d {
+    fn intersection(segment: &Segment, other_segment: &Segment) -> Option<Point2d> {
         let Segment {
             slope: a,
             offset: b,
@@ -111,23 +117,31 @@ impl Segment {
             ..
         } = other_segment;
 
-        // y = ax + b
-        // y = cx + d
-        // 0 = (a-c)xk + (b-d)
-        let x = (b - d) / (a - c);
-        let y = a * x + b;
+        let segments_are_parallel = a == b || (a.is_infinite() && b.is_infinite());
+        if segments_are_parallel {
+            None
+        } else {
+            // y = ax + b
+            // y = cx + d
+            // 0 = (a-c)x + (b-d)
+            let x = (d - b) / (a - c);
+            let y = a * x + b;
 
-        Point2d::new(x, y)
+            let point = Point2d::new(x, y);
+            Some(point)
+        }
     }
 
-    pub fn points_inwards(&self, segment: &Segment) -> bool {
-        let midpoint = (&self.start + &self.end) / 2.0;
-        let along: Vector3d = Vector2d::from_points(&midpoint, &segment.end).into();
-        let up = Vector3d::z();
-        let perp = up.curl(along);
+    pub fn points_inwards_of(&self, mould_segment: &Segment) -> bool {
+        let along: Vector3d =
+            Vector2d::from_points(&mould_segment.start, &mould_segment.end).into();
+        // in a dextrogirous system if y goes down z goes into
+        let up = -Vector3d::z(); // if polygons were to be defined clockwise
+                                 // let down = -Vector3d::z(); // if polygons were to be defined clockwise
+        let ortho = up.curl(along);
 
-        let vector: Vector3d = Vector2d::from_points(&segment.start, &segment.end).into();
-        vector.dot(&perp) >= 0.0
+        let vector: Vector3d = Vector2d::from_points(&self.start, &self.end).into();
+        vector.dot(&ortho) >= 0.0
     }
 
     pub fn contains_point_within_x(&self, point: &Point2d) -> bool {
@@ -136,6 +150,10 @@ impl Segment {
 
     pub fn contains_point_within_y(&self, point: &Point2d) -> bool {
         point.y >= self.bounds.min_y && point.y <= self.bounds.max_y
+    }
+
+    pub fn boxes(&self, point: &Point2d) -> bool {
+        self.contains_point_within_x(point) && self.contains_point_within_y(point)
     }
 
     pub fn is_point(&self) -> bool {

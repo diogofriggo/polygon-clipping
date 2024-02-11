@@ -87,6 +87,7 @@ fn clip(
     clipped_segments: &mut Vec<Segment>,
 ) {
     for segment in polygon_segments {
+        // only clip if segment is not contained inside polygon
         clip_segment(mould_segments, segment, clipped_segments);
     }
 }
@@ -110,7 +111,7 @@ fn clip_segment(
     for mould_segment in mould_segments {
         let intersections = mould_segment.intersections_with(segment);
         for intersection in intersections {
-            let sub_segment_a = Segment::new(segment.start.clone(), intersection.clone());
+            let sub_segment_a = Segment::new(intersection.clone(), segment.start.clone());
             let sub_segment_b = Segment::new(intersection.clone(), segment.end.clone());
 
             if sub_segment_a.is_point() {
@@ -123,13 +124,18 @@ fn clip_segment(
                 continue;
             }
 
-            let kept_sub_segment = if sub_segment_a.points_inwards(mould_segment) {
-                sub_segment_a
-            } else {
+            // println!("a: {sub_segment_a} b: {sub_segment_b} mould: {mould_segment}");
+            let kept_sub_segment = if sub_segment_a.points_inwards_of(mould_segment) {
                 sub_segment_b
+            } else {
+                // sub_segment_a_with_correct_orientation
+                Segment::new(segment.start.clone(), intersection.clone())
             };
 
-            println!("intersection, pushing segment {}", kept_sub_segment);
+            println!(
+                "intersection between mould {} and {} pushing segment {}",
+                mould_segment, segment, kept_sub_segment
+            );
             clipped_segments.push(kept_sub_segment);
         }
     }
