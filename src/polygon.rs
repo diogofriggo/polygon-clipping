@@ -1,11 +1,12 @@
 use crate::bounds::Bounds;
+use crate::iter_from::IteratorFrom;
 use crate::point::Point2d;
 use crate::segment::Segment;
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::slice::Iter;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Polygon {
     pub points: Vec<Point2d>,
     pub segments: Vec<Segment>,
@@ -143,6 +144,24 @@ pub fn polygons_from_unordered_segments(unordered_segments: Vec<Segment>) -> Vec
 //     Point2d::new(x, y)
 // }
 
+impl PartialEq for Polygon {
+    fn eq(&self, other: &Self) -> bool {
+        if self.points.is_empty() {
+            return other.points.is_empty();
+        }
+
+        if self.points.len() != other.points.len() {
+            return false;
+        }
+
+        let first_point = &self.points[0];
+        self.points
+            .iter()
+            .zip(other.points.iter().from(first_point))
+            .all(|(self_point, other_point)| self_point == other_point)
+    }
+}
+
 impl Display for Polygon {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let segments = self
@@ -153,5 +172,34 @@ impl Display for Polygon {
             .join("; ");
 
         write!(f, "{}", segments)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{point::Point2d, polygon::Polygon};
+
+    #[test]
+    fn test_equality_of_two_polygons_starting_at_different_points() {
+        let p0 = Point2d::new(1.0, 1.0);
+        let p1 = Point2d::new(1.0, 3.0);
+        let p2 = Point2d::new(3.0, 3.0);
+        let p3 = Point2d::new(3.0, 1.0);
+        let points = vec![p0, p1, p2, p3];
+        let mut other_points = points.clone();
+        let polygon_a = Polygon::from_points(points);
+
+        for i in 1..other_points.len() {
+            other_points.rotate_left(i);
+            let polygon_b = Polygon::from_points(other_points.clone());
+            assert_eq!(polygon_a, polygon_b);
+        }
+
+        // same as above but just making sure
+        for i in 1..other_points.len() {
+            other_points.rotate_right(i);
+            let polygon_b = Polygon::from_points(other_points.clone());
+            assert_eq!(polygon_a, polygon_b);
+        }
     }
 }
