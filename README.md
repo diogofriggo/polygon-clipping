@@ -12,4 +12,4 @@ This is a simple example of a number of polygons being input (which would repres
 And this is the output of clipping all of them.
 ![after](after.png)
 
-Tangential to the subject matter there's also an interesting implementation of a cyclic iterator worth checking out.
+Tangential to the subject matter there's also an interesting implementation of a cyclic iterator worth checking out: ![iter_from](src/iter_from.rs)
