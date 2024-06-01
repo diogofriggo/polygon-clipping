@@ -30,20 +30,15 @@ impl Point2d {
             let along = &mould_segment.end - &mould_segment.start;
             let along: Vector3d = along.into();
             let inwards = up.curl(&along);
-            // println!("mould_segment: {mould_segment} inwards: {inwards}");
-
-            // end - start
             let to_point = self - &mould_segment.start;
             let to_point = Vector3d::from_coordinates(to_point.x, to_point.y, 0.0);
             let numerator = inwards.dot(&to_point);
             let denominator = inwards.norm() * to_point.norm();
             let is_outside = (numerator / denominator).cos() < 0.0;
             if is_outside {
-                // println!("{self} is OUTSIDE of {}", mould_segments[0]);
                 return false;
             }
         }
-        // println!("{self} is INSIDE of {}", mould_segments[0]);
         true
     }
 

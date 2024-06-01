@@ -42,7 +42,6 @@ impl Segment {
         }
     }
 
-    // TODO: stop computing intersections twice (a,b then b,a)
     pub fn intersections_with(&self, other: &Segment) -> Vec<Point2d> {
         // there can be at most two points of intersection (segment start and segment end)
         let mut intersections = Vec::with_capacity(2);
@@ -86,7 +85,6 @@ impl Segment {
             }
         }
 
-        // println!("intersections between {self} and {other} : {intersections:?}");
         intersections
     }
 
@@ -161,12 +159,6 @@ impl Segment {
     }
 
     pub fn is_inside_of_or_touches(&self, mould_segments: &[Segment]) -> bool {
-        // let start = self.start.is_inside_of(mould_segments);
-        // let end = self.end.is_inside_of(mould_segments);
-        // println!(
-        //     "is {self} inside of {} ??? : {start} {end}",
-        //     mould_segments[0]
-        // );
         self.start.is_inside_of_or_touches(mould_segments)
             && self.end.is_inside_of_or_touches(mould_segments)
     }
@@ -180,7 +172,6 @@ impl Segment {
     pub fn contains(&self, point: &Point2d) -> bool {
         // let y = self.slope * point.x + self.offset;
         let slope = (point.y - self.start.y) / (point.x - self.start.x);
-        // TODO: f64 comparisons behind the scenes!!!
         self.boxes(point) && (point == &self.start || slope == self.slope)
     }
 }

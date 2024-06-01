@@ -7,31 +7,6 @@ use crate::{
     vector::Vector2d,
 };
 
-// // TODO: many polygons
-// pub fn sum(polygon_a: &Polygon, polygon_b: &Polygon) -> Vec<Polygon> {
-//     let upper_bound = polygon_a.segments.len().max(polygon_b.segments.len());
-//     // each segment can cross a polygon at most twice and there are 2 polygons so 2 * 2
-//     let mut clipped_segments = Vec::with_capacity(2 * 2 * upper_bound);
-//
-//     clip(
-//         &polygon_a.segments,
-//         &polygon_b.segments,
-//         &mut clipped_segments,
-//     );
-//     clip(
-//         &polygon_b.segments,
-//         &polygon_a.segments,
-//         &mut clipped_segments,
-//     );
-//     polygons_from_unordered_segments(clipped_segments)
-// }
-
-// IDEA: I could CoW segment and just clone points at the very end when building a polygon
-// this would avoid the extra memory of Rc
-// TODO: enable jmalloc (won't work with WebAssembly?)
-// TODO: implement a manual ThreadPool
-// TODO: consider rust async
-// TODO: consider different segment types with less data for each stage of the calc
 pub fn sum(mut polygons: Vec<Polygon>) -> Vec<Polygon> {
     if polygons.is_empty() || polygons.len() == 1 {
         return polygons;
@@ -82,16 +57,6 @@ pub fn clip_one_another(segments_a: &[Segment], segments_b: &[Segment]) -> Vec<S
     clipped_segments
 }
 
-// fn is_inside_of(larger_segments: &[Segment], smaller_segments: &[Segment]) -> bool {
-//     for smaller_segment in smaller_segments {
-//         let is_outside = !smaller_segment.is_inside_of(larger_segments);
-//         if is_outside {
-//             return false;
-//         }
-//     }
-//     true
-// }
-
 fn clip(
     mould_segments: &[Segment],
     polygon_segments: &[Segment],
@@ -113,8 +78,6 @@ fn clip_segment(
     polygon_segments: &[Segment],
     clipped_segments: &mut Vec<Segment>,
 ) {
-    // println!("EVALUATING segment {segment}");
-    // println!("IS_SEGMENT_INSIDE_OF_MOULD");
     if segment.is_inside_of_or_touches(mould_segments) {
         println!("segment {segment} is inside of or touches mould, skipping it");
         return;
@@ -123,14 +86,12 @@ fn clip_segment(
     let clipped_segments_before = clipped_segments.len();
 
     for mould_segment in mould_segments {
-        // println!("IS_MOULD_SEGMENT_INSIDE_OF_POLYGON");
         if mould_segment.is_inside_of_or_touches(polygon_segments) {
             let vector: Vector2d = segment.into();
             let mould_vector: Vector2d = mould_segment.into();
             let is_outside = mould_vector.dot(&vector) == -1.0;
             let process = mould_segment.is_collinear_with(segment) && is_outside;
             if !process {
-                // println!("mould_segment {mould_segment} is inside of polygon but it is NOT collinear with {segment}, next mould_segment");
                 continue;
             }
         }
@@ -174,25 +135,6 @@ fn clip_segment(
         clipped_segments.push(segment.clone());
     }
 }
-
-// enum Recipe<'a> {
-//     Add(&'a Segment),
-//     Clip(&'a Segment, &'a Segment),
-// }
-//
-// fn recipes<'a>(mould: &'a Polygon, other: &'a Polygon) -> Vec<Recipe<'a>> {
-//     for segment in other.segments {
-//         for mould_segment in mould.segments {
-//             let intersections = segment.intersections_with(mould_segment);
-//             if in
-//
-//             }
-//         }
-//     }
-//
-//
-//     vec![]
-// }
 
 #[cfg(test)]
 mod tests {

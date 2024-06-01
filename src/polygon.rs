@@ -6,6 +6,9 @@ use std::collections::HashMap;
 use std::fmt::Display;
 use std::slice::Iter;
 
+/// A collection of points that are arranged into segments to form a closed polygon in 2d space.
+/// Points must be ordered counter-clockwise in a y-down, x-right, z-into the screen coordinate
+/// system
 #[derive(Debug, Clone)]
 pub struct Polygon {
     pub points: Vec<Point2d>,
@@ -73,29 +76,10 @@ pub fn polygons_from_unordered_segments(unordered_segments: Vec<Segment>) -> Vec
         // let mut visited_vertices = HashSet::new();
 
         loop {
-            // TODO: where you stopped there may no longer be any vertex
-
             let mut paths = match roadmap.remove(vertex) {
                 None => break,
-                // if roadmap.is_empty() {
-                //     // if there are no more paths we are done
-                //     return polygons;
-                // } else {
-                //     println!("moving on to next polygon");
-                //     // move to next polygon
-                //     // TODO: how can it be possible for the 'outer roadmap unwrap to fail?
-                //
-                //     // this branch means we have exausted all paths of a polygon
-                //     // but there may be other polygons that are disjoint with the
-                //     // one just built so we push these segments as a fully formed
-                //     // polygon and break to check for more polygons
-                //     break;
-                // }
-                // }
                 Some(paths) => paths,
             };
-            // visited_vertices.insert(vertex);
-
             // take any path, order is not relevant
             // the None case will never happen because only non-empty vecs
             // are ever inserted into roadmap
@@ -111,21 +95,7 @@ pub fn polygons_from_unordered_segments(unordered_segments: Vec<Segment>) -> Vec
                 // the path whose start is this path's end
                 vertex = &path.end.key;
                 segments.push(path.clone());
-                // None => {
-                //     // remove the visited vertices so that if there are no more vertices
-                //     // (i.e. from unvisited disjoint polygons) we can break out of 'outer
-                //     // and return from the function
-                //     // TODO: this is wrong, I cannot remove vertices just because I'm done
-                //     // with one polygon, I may be deleting a shared vertex
-                //     // for vertex in visited_vertices {
-                //     //     roadmap.remove(vertex);
-                //     // }
-                //
-                //     break;
-                // }
-                // Some(path) => path,
             };
-            // println!("{} popped {path}", visited_vertices.len());
         }
 
         let bounds = Bounds::from_points(&points);
@@ -137,12 +107,6 @@ pub fn polygons_from_unordered_segments(unordered_segments: Vec<Segment>) -> Vec
         polygons.push(polygon);
     }
 }
-
-// fn to_point(vertex: &(u64, u64)) -> Point2d {
-//     let x = f64::from_bits(vertex.0);
-//     let y = f64::from_bits(vertex.1);
-//     Point2d::new(x, y)
-// }
 
 impl PartialEq for Polygon {
     fn eq(&self, other: &Self) -> bool {

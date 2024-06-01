@@ -2,8 +2,6 @@ use polygon_clipping::{clip, draw, point::Point2d, polygon::Polygon};
 
 fn main() {
     _case1();
-    // _case2();
-    // _case3();
 }
 
 fn _case1() {
@@ -35,8 +33,7 @@ fn _case1() {
     let polygon_d = Polygon::from_points(points_d);
 
     // b is contained in d
-    let polygons = vec![polygon_a, polygon_d];
-
+    let polygons = vec![polygon_a, polygon_b, polygon_c, polygon_d];
     let polygons = clip::sum(polygons);
     draw::draw(&polygons);
 }
